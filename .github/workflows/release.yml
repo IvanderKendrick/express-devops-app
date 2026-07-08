@@ -55,3 +55,34 @@ jobs:
           severity: CRITICAL
           exit-code: "1"
 
+    outputs:
+      image-tag: ${{ steps.meta.outputs.version }}
+
+  update-gitops:
+    needs: publish
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout GitOps Repository
+        uses: actions/checkout@v4
+        with:
+          repository: ivanderkendrick/express-gitops
+          token: ${{ secrets.GITOPS_TOKEN }}
+          path: gitops
+
+      - name: Update Image Tag
+        run: |
+          sed -i 's/newTag:.*/newTag: ${{ needs.publish.outputs.image-tag }}/' \
+          gitops/k8s/base/kustomization.yaml
+
+      - name: Commit and Push Changes
+        run: |
+          cd gitops
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add .
+          git diff --cached --quiet && exit 0
+
+          git commit -m "chore: update image to ${{ needs.publish.outputs.image-tag }}"
+          git push
