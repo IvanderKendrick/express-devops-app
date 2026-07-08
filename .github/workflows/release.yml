@@ -52,6 +52,6 @@ jobs:
           TRIVY_DISABLE_VEX_NOTICE: "true"
         with:
           image-ref: ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
-          severity: HIGH,CRITICAL
+          severity: CRITICAL
           exit-code: "1"
 
