@@ -36,6 +36,12 @@ jobs:
             type=sha
             type=raw,value=latest
 
+      - name: Extract SHA tag
+        id: image
+        run: |
+          SHA_TAG=$(echo '${{ steps.meta.outputs.tags }}' | tr ',' '\n' | grep 'sha-')
+          echo "tag=${SHA_TAG##*:}" >> $GITHUB_OUTPUT
+
       - name: Build and Push Image
         uses: docker/build-push-action@v6
         with:
@@ -56,7 +62,7 @@ jobs:
           exit-code: "1"
 
     outputs:
-      image-tag: ${{ steps.meta.outputs.version }}
+      image-tag: ${{ steps.image.outputs.tag }}
 
   update-gitops:
     needs: publish
